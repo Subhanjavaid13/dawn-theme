@@ -1,0 +1,412 @@
+{%- comment -%}
+  ---------------------------------------------------------------------------
+  Hero banner — blun redesign
+
+  Reproduces the Figma hero at the 1280px container width and scales down
+  mobile-first from there. See assets/section-hero-blun.css for the grid maths.
+
+  The price card reads live pricing from a connected product and falls back to
+  the manual text fields when no product is selected, so the figures on the
+  homepage can never drift away from the ones at checkout.
+
+  Inter is self-hosted (assets/inter-latin*.woff2) because it is not in the
+  Shopify font library, and the design's metrics depend on it. The @font-face
+  lives here rather than in theme.liquid so the section stays self-contained.
+  ---------------------------------------------------------------------------
+{%- endcomment -%}
+
+{{ 'section-hero-blun.css' | asset_url | stylesheet_tag }}
+
+{{ 'inter-latin.woff2' | asset_url | preload_tag: as: 'font', type: 'font/woff2', crossorigin: 'anonymous' }}
+
+{%- style -%}
+  /* Inter 400–600, variable, latin */
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 600;
+    font-display: swap;
+    src: url("{{ 'inter-latin.woff2' | asset_url }}") format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+
+  /* latin-ext — carries the ₨ / PKR glyph range used by the price card */
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 600;
+    font-display: swap;
+    src: url("{{ 'inter-latin-ext.woff2' | asset_url }}") format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+
+  #shopify-section-{{ section.id }} {
+    --hero-padding-top: {{ section.settings.padding_top }}px;
+    --hero-padding-bottom: {{ section.settings.padding_bottom }}px;
+    --hero-media-ratio-mobile: {{ section.settings.mobile_image_ratio }};
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign heading_tag = section.settings.heading_tag | default: 'h1'
+  assign hero_product = section.settings.card_product
+
+  # Manual card values are escaped here so the markup below can print money
+  # values, which may legitimately contain HTML, without escaping them.
+  assign card_title = section.settings.card_title | escape
+  assign card_subtitle = section.settings.card_subtitle | escape
+  assign card_price = section.settings.card_price | escape
+  assign card_compare = section.settings.card_compare_at | escape
+  assign card_badge = section.settings.card_badge | escape
+
+  if hero_product != blank
+    assign hero_variant = hero_product.selected_or_first_available_variant
+
+    if section.settings.card_title == blank
+      assign card_title = hero_product.title | escape
+    endif
+
+    if section.settings.card_subtitle == blank and hero_variant.title != 'Default Title'
+      assign card_subtitle = hero_variant.title | escape
+    endif
+
+    assign card_price = hero_variant.price | money
+    assign card_compare = ''
+    assign card_badge = ''
+
+    if hero_variant.compare_at_price > hero_variant.price
+      assign card_compare = hero_variant.compare_at_price | money
+      assign card_saving = hero_variant.compare_at_price | minus: hero_variant.price | money
+      assign card_badge = section.settings.card_save_label | escape | append: ' ' | append: card_saving
+    endif
+  endif
+
+  assign image_alt = section.settings.image.alt | default: section.settings.heading | strip_html | escape
+
+  assign section_classes = 'hero-blun'
+  unless section.settings.show_overlay
+    assign section_classes = section_classes | append: ' hero-blun--no-overlay'
+  endunless
+
+  assign inner_classes = 'hero-blun__inner'
+  if section.settings.desktop_media_position == 'left'
+    assign inner_classes = inner_classes | append: ' hero-blun__inner--media-first'
+  endif
+-%}
+
+<div class="{{ section_classes }}">
+  <div class="{{ inner_classes }}">
+    <div class="hero-blun__content">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="hero-blun__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <{{ heading_tag }} class="hero-blun__heading">{{ section.settings.heading }}</{{ heading_tag }}>
+      {%- endif -%}
+
+      {%- if section.settings.body != blank -%}
+        <div class="hero-blun__body">{{ section.settings.body }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.button_label_1 != blank or section.settings.button_label_2 != blank -%}
+        <div class="hero-blun__actions">
+          {%- if section.settings.button_label_1 != blank -%}
+            <a
+              {% if section.settings.button_link_1 == blank %}
+                role="link" aria-disabled="true"
+              {% else %}
+                href="{{ section.settings.button_link_1 }}"
+              {% endif %}
+              class="hero-blun__btn hero-blun__btn--primary"
+            >
+              {{- section.settings.button_label_1 | escape -}}
+            </a>
+          {%- endif -%}
+
+          {%- if section.settings.button_label_2 != blank -%}
+            <a
+              {% if section.settings.button_link_2 == blank %}
+                role="link" aria-disabled="true"
+              {% else %}
+                href="{{ section.settings.button_link_2 }}"
+              {% endif %}
+              class="hero-blun__btn hero-blun__btn--secondary"
+            >
+              {{- section.settings.button_label_2 | escape -}}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.trust_text != blank -%}
+        <p class="hero-blun__trust">{{ section.settings.trust_text }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="hero-blun__media">
+      {%- if section.settings.image != blank -%}
+        {{
+          section.settings.image
+          | image_url: width: 1600
+          | image_tag:
+            class: 'hero-blun__image',
+            alt: image_alt,
+            loading: 'eager',
+            fetchpriority: 'high',
+            decoding: 'async',
+            widths: '274, 375, 480, 550, 574, 700, 750, 900, 1100, 1148, 1400, 1600',
+            sizes: '(min-width: 1280px) 574px, (min-width: 990px) 48vw, (min-width: 750px) 560px, calc(100vw - 48px)'
+        }}
+      {%- else -%}
+        <div class="hero-blun__placeholder" role="img" aria-label="{{ image_alt }}">
+          {{- 'lifestyle-1' | placeholder_svg_tag -}}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_card and card_title != blank -%}
+        <div class="hero-blun__card">
+          <p class="hero-blun__card-title">{{ card_title }}</p>
+
+          {%- if card_subtitle != blank -%}
+            <p class="hero-blun__card-subtitle">{{ card_subtitle }}</p>
+          {%- endif -%}
+
+          {%- if card_price != blank -%}
+            <div class="hero-blun__card-pricing">
+              <div class="hero-blun__card-prices">
+                <span class="hero-blun__card-price">
+                  <span class="hero-blun__visually-hidden">
+                    {%- if card_compare != blank -%}
+                      {{- 'products.product.price.sale_price' | t -}}
+                    {%- else -%}
+                      {{- 'products.product.price.regular_price' | t -}}
+                    {%- endif -%}
+                  </span>
+                  {{ card_price }}
+                </span>
+
+                {%- if card_compare != blank -%}
+                  <s class="hero-blun__card-compare">
+                    <span class="hero-blun__visually-hidden">
+                      {{- 'products.product.price.regular_price' | t -}}
+                    </span>
+                    {{ card_compare }}
+                  </s>
+                {%- endif -%}
+              </div>
+
+              {%- if card_badge != blank -%}
+                <span class="hero-blun__card-badge">{{ card_badge }}</span>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Hero banner",
+  "tag": "section",
+  "class": "hero-blun-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Modern botanical skincare"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Less, but better for your skin."
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Heading level",
+      "info": "Use H1 when this is the first and only hero on the page.",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" }
+      ],
+      "default": "h1"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body",
+      "default": "<p>Two thoughtfully made formulas for a gentler, simpler everyday ritual. A handmade soap to cleanse, a fragrance-free camel milk cream to moisturize.</p>"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "trust_text",
+      "label": "Reassurance line",
+      "default": "Cash on delivery nationwide · Fragrance-free cream"
+    },
+    {
+      "type": "header",
+      "content": "Buttons"
+    },
+    {
+      "type": "text",
+      "id": "button_label_1",
+      "label": "Primary button label",
+      "default": "Shop the collection"
+    },
+    {
+      "type": "url",
+      "id": "button_link_1",
+      "label": "Primary button link"
+    },
+    {
+      "type": "text",
+      "id": "button_label_2",
+      "label": "Secondary button label",
+      "default": "Discover our approach"
+    },
+    {
+      "type": "url",
+      "id": "button_link_2",
+      "label": "Secondary button link"
+    },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "info": "Shown at a 10:11 ratio on desktop. Use at least 1148 × 1263 px."
+    },
+    {
+      "type": "select",
+      "id": "mobile_image_ratio",
+      "label": "Mobile image ratio",
+      "options": [
+        { "value": "4 / 5", "label": "Portrait (4:5)" },
+        { "value": "1 / 1", "label": "Square (1:1)" },
+        { "value": "10 / 11", "label": "Match desktop (10:11)" },
+        { "value": "auto", "label": "Adapt to image" }
+      ],
+      "default": "4 / 5"
+    },
+    {
+      "type": "select",
+      "id": "desktop_media_position",
+      "label": "Desktop image position",
+      "options": [
+        { "value": "right", "label": "Right" },
+        { "value": "left", "label": "Left" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "header",
+      "content": "Product card"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_card",
+      "label": "Show product card",
+      "default": true
+    },
+    {
+      "type": "product",
+      "id": "card_product",
+      "label": "Product",
+      "info": "Connect a product to pull live pricing and savings. Leave empty to use the manual values below."
+    },
+    {
+      "type": "text",
+      "id": "card_title",
+      "label": "Title",
+      "info": "Overrides the product title.",
+      "default": "Camel Milk Cream"
+    },
+    {
+      "type": "text",
+      "id": "card_subtitle",
+      "label": "Subtitle",
+      "default": "50 ml"
+    },
+    {
+      "type": "text",
+      "id": "card_save_label",
+      "label": "Savings label",
+      "info": "Prefixed to the calculated discount, e.g. \"Save Rs. 300\".",
+      "default": "Save"
+    },
+    {
+      "type": "header",
+      "content": "Manual pricing"
+    },
+    {
+      "type": "paragraph",
+      "content": "Used only when no product is connected above."
+    },
+    {
+      "type": "text",
+      "id": "card_price",
+      "label": "Price",
+      "default": "Rs. 4,500"
+    },
+    {
+      "type": "text",
+      "id": "card_compare_at",
+      "label": "Compare-at price",
+      "default": "Rs. 4,800"
+    },
+    {
+      "type": "text",
+      "id": "card_badge",
+      "label": "Savings badge",
+      "default": "Save Rs. 300"
+    },
+    {
+      "type": "header",
+      "content": "Section"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "Show background vignette",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 80
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero banner"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,457 @@
+/* ==========================================================================
+   Hero banner — blun redesign
+   --------------------------------------------------------------------------
+   Measurements transcribed from the Figma frame (1280px container).
+   Authored mobile-first; the >= 1280px band is the pixel-perfect target:
+
+     container 1280 / padding-inline 48 / column-gap 64
+       -> inner 1184, (1184 - 64) / 2.05 = 546.34 text, x 1.05 = 573.66 media
+     media aspect 573.66 x 631.03 = 10 / 11
+     card 250 x 144.36, inset-inline-start -32, bottom 40
+
+   Dawn sets the root font-size to 62.5%, so 1rem = 10px throughout.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Tokens
+   -------------------------------------------------------------------------- */
+
+.hero-blun {
+  /* Palette — fixed by the brand design system, deliberately not themed. */
+  --hero-ivory: #f8f6f0;
+  --hero-oat: #ede5d9;
+  --hero-green: #34483c;
+  --hero-green-deep: #263629;
+  --hero-ink: #242720;
+  --hero-muted: #5a6054;
+  --hero-border: #d8cfbf;
+
+  /* Layout */
+  --hero-container: 128rem;
+  --hero-gutter: 2.4rem;
+
+  /* Type */
+  --hero-font: 'Inter', var(--font-body-family, sans-serif), -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  --hero-duration: 150ms;
+  --hero-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --------------------------------------------------------------------------
+   2. Section shell
+   -------------------------------------------------------------------------- */
+
+.hero-blun {
+  position: relative;
+  padding-top: calc(var(--hero-padding-top, 80px) * 0.7);
+  padding-bottom: calc(var(--hero-padding-bottom, 80px) * 0.7);
+  background-color: var(--hero-ivory);
+  background-image: radial-gradient(
+    ellipse 70.71% 70.71% at 50% 50%,
+    rgba(36, 39, 32, 0.043) 0%,
+    rgba(36, 39, 32, 0) 100%
+  );
+  color: var(--hero-ink);
+  font-family: var(--hero-font);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* The price card overhangs the media box; clip only the horizontal axis so
+     no stray scrollbar appears, while keeping overflow-y visible. */
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.hero-blun--no-overlay {
+  background-image: none;
+}
+
+.hero-blun__inner {
+  display: grid;
+  row-gap: 4rem;
+  max-width: var(--hero-container);
+  margin-inline: auto;
+  padding-inline: var(--hero-gutter);
+}
+
+.hero-blun__content,
+.hero-blun__media {
+  min-width: 0; /* let grid children shrink instead of overflowing */
+}
+
+/* Stacked, the copy would otherwise run the full width of a tablet and the
+   display line would stop wrapping. Cap it to the same 560px as the photo so
+   the two blocks read as one centred column. */
+.hero-blun__content {
+  max-width: 56rem;
+  margin-inline: auto;
+}
+
+/* --------------------------------------------------------------------------
+   3. Copy column
+   -------------------------------------------------------------------------- */
+
+.hero-blun__eyebrow {
+  margin: 0;
+  font-size: 1.3rem;
+  line-height: 2.1rem;
+  font-weight: 600;
+  letter-spacing: 0.14em; /* 1.82px at 13px */
+  text-transform: uppercase;
+  color: var(--hero-green);
+}
+
+.hero-blun__heading {
+  margin: 1.6rem 0 0;
+  /* base.css declares font-family/style on the h1..h5 elements themselves,
+     which beats inheritance from .hero-blun — so restate them here. */
+  font-family: inherit;
+  font-style: normal;
+  /* 42px at 390 -> 64px at 989, where the layout is still stacked. */
+  font-size: clamp(4.2rem, calc(2.9rem + 3.4vw), 6.4rem);
+  line-height: 1.014; /* 73 / 72 */
+  font-weight: 500;
+  letter-spacing: -0.035em; /* -2.52px at 72px */
+  color: var(--hero-ink);
+  overflow-wrap: break-word;
+}
+
+.hero-blun__heading em,
+.hero-blun__heading i {
+  font-style: italic;
+}
+
+.hero-blun__body {
+  margin: 1.6rem 0 0;
+  max-width: 52.3rem;
+  font-size: 1.6rem;
+  line-height: 2.6rem;
+  font-weight: 400;
+  color: var(--hero-muted);
+}
+
+.hero-blun__body > * {
+  margin: 0;
+}
+
+.hero-blun__body > * + * {
+  margin-top: 1.2rem;
+}
+
+.hero-blun__trust {
+  margin: 2rem 0 0;
+  font-size: 1.4rem;
+  line-height: 2rem;
+  font-weight: 400;
+  color: var(--hero-muted);
+}
+
+/* --------------------------------------------------------------------------
+   4. Buttons
+   -------------------------------------------------------------------------- */
+
+.hero-blun__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  margin-top: 2.8rem;
+}
+
+.hero-blun__btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 100%; /* full width on the narrowest phones */
+  min-height: 4.8rem;
+  padding: 0 2.8rem;
+  border: 0;
+  border-radius: 0; /* square corners, per the Figma export */
+  font-family: inherit;
+  font-size: 1.5rem;
+  line-height: 2.4rem;
+  font-weight: 600;
+  letter-spacing: 0.025em; /* 0.375px at 15px */
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--hero-duration) var(--hero-ease),
+    color var(--hero-duration) var(--hero-ease);
+}
+
+.hero-blun__btn--primary {
+  background-color: var(--hero-green);
+  color: var(--hero-ivory);
+}
+
+/* An inset shadow rather than a border, so the 48px box height is identical
+   on both buttons without relying on box-sizing. */
+.hero-blun__btn--secondary {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--hero-green);
+  color: var(--hero-green);
+}
+
+.hero-blun__btn[aria-disabled="true"] {
+  cursor: default;
+}
+
+.hero-blun__btn:focus-visible {
+  outline: 2px solid var(--hero-green);
+  outline-offset: 3px;
+}
+
+/* Fallback for browsers without :focus-visible support. */
+.hero-blun__btn:focus:not(:focus-visible) {
+  outline: 0;
+}
+
+@media (hover: hover) {
+  .hero-blun__btn--primary:hover {
+    background-color: var(--hero-green-deep); /* 11.83:1 — audited */
+  }
+
+  .hero-blun__btn--secondary:hover {
+    background-color: var(--hero-green);
+    color: var(--hero-ivory); /* 9.09:1 — audited */
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Media column
+   -------------------------------------------------------------------------- */
+
+.hero-blun__media {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: 56rem;
+  margin-inline: auto;
+}
+
+.hero-blun__image,
+.hero-blun__placeholder {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--hero-media-ratio-mobile, 4 / 5);
+  object-fit: cover;
+  background-color: var(--hero-oat); /* holds the frame while the photo loads */
+}
+
+.hero-blun__placeholder {
+  display: grid;
+  place-items: center;
+}
+
+.hero-blun__placeholder svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  fill: rgba(36, 39, 32, 0.12);
+}
+
+/* --------------------------------------------------------------------------
+   6. Price card
+   -------------------------------------------------------------------------- */
+
+.hero-blun__card {
+  box-sizing: border-box;
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: 1.2rem;
+  bottom: 1.2rem;
+  width: 22rem;
+  max-width: calc(100% - 2.4rem);
+  padding: 1.6rem;
+  background-color: var(--hero-ivory);
+  border: 1px solid var(--hero-border);
+  border-radius: 0;
+}
+
+.hero-blun__card-title {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 2.6rem;
+  font-weight: 500;
+  color: var(--hero-ink);
+}
+
+.hero-blun__card-subtitle {
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 2rem;
+  font-weight: 400;
+  color: var(--hero-muted);
+}
+
+.hero-blun__card-pricing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 0.4rem;
+}
+
+.hero-blun__card-prices {
+  display: flex;
+  align-items: baseline; /* reproduces the 2.39px optical offset in the Figma */
+  flex-wrap: wrap;
+  gap: 1.1rem;
+}
+
+.hero-blun__card-price {
+  font-size: 1.8rem;
+  line-height: 2.8rem;
+  font-weight: 600;
+  color: var(--hero-ink);
+}
+
+.hero-blun__card-compare {
+  font-size: 1.6rem;
+  line-height: 2.4rem;
+  font-weight: 400;
+  text-decoration: line-through;
+  color: var(--hero-muted);
+}
+
+.hero-blun__card-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.8rem;
+  background-color: var(--hero-oat);
+  font-size: 1.4rem;
+  line-height: 2rem;
+  font-weight: 600;
+  color: var(--hero-green); /* 7.88:1 on oat — audited */
+}
+
+.hero-blun__visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   7a. >= 540px — the two buttons (203 + 12 + 228 = 443px) now fit on one row
+   -------------------------------------------------------------------------- */
+
+@media screen and (min-width: 540px) {
+  .hero-blun__btn {
+    flex: 0 0 auto;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7b. >= 750px — roomier gutters, the card starts to overhang
+   -------------------------------------------------------------------------- */
+
+@media screen and (min-width: 750px) {
+  .hero-blun {
+    --hero-gutter: 4.8rem;
+  }
+
+  .hero-blun__inner {
+    row-gap: 4.8rem;
+  }
+
+  .hero-blun__card {
+    inset-inline-start: -2.4rem;
+    bottom: 2.4rem;
+    width: 25rem;
+    max-width: none;
+    padding: 2rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. >= 990px — two columns; every value here matches the Figma at 1280
+   -------------------------------------------------------------------------- */
+
+@media screen and (min-width: 990px) {
+  .hero-blun {
+    padding-top: var(--hero-padding-top, 80px);
+    padding-bottom: var(--hero-padding-bottom, 80px);
+  }
+
+  .hero-blun__inner {
+    grid-template-columns: 1fr 1.05fr;
+    align-items: center;
+    /* 5vw resolves to exactly 64px at the 1280px design width. */
+    column-gap: clamp(3.2rem, 5vw, 6.4rem);
+    row-gap: 0;
+  }
+
+  .hero-blun__inner--media-first {
+    grid-template-columns: 1.05fr 1fr;
+  }
+
+  .hero-blun__inner--media-first .hero-blun__media {
+    order: 1;
+  }
+
+  .hero-blun__inner--media-first .hero-blun__content {
+    order: 2;
+  }
+
+  /* The copy column narrows sharply here, so the display size is re-based on
+     the column rather than the viewport: 52px at 990 -> 72px from 1240 up. */
+  .hero-blun__heading {
+    margin-top: 2rem;
+    font-size: clamp(5.2rem, calc(8vw - 2.72rem), 7.2rem);
+  }
+
+  .hero-blun__body {
+    margin-top: 2.4rem;
+    font-size: 1.8rem;
+    line-height: 2.8rem;
+  }
+
+  .hero-blun__actions {
+    margin-top: 3.2rem;
+  }
+
+  .hero-blun__trust {
+    margin-top: 2.4rem;
+  }
+
+  .hero-blun__content,
+  .hero-blun__media {
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  .hero-blun__image,
+  .hero-blun__placeholder {
+    aspect-ratio: 10 / 11; /* 573.68 x 631.04 */
+  }
+
+  .hero-blun__card {
+    inset-inline-start: -3.2rem;
+    bottom: 4rem;
+  }
+
+  /* With the photo on the left the card would collide with the copy, so it
+     overhangs the opposite edge instead. */
+  .hero-blun__inner--media-first .hero-blun__card {
+    inset-inline-start: auto;
+    inset-inline-end: -3.2rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   9. Motion preferences
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-blun__btn {
+    transition: none;
+  }
+}

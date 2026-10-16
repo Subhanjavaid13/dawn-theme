@@ -9,43 +9,30 @@
  */
 {
   "sections": {
-    "image_banner": {
-      "type": "image-banner",
-      "blocks": {
-        "heading": {
-          "type": "heading",
-          "settings": {
-            "heading": "Browse our latest products",
-            "heading_size": "h0"
-          }
-        },
-        "button": {
-          "type": "buttons",
-          "settings": {
-            "button_label_1": "Shop all",
-            "button_link_1": "shopify://collections/all",
-            "button_style_secondary_1": true,
-            "button_label_2": "",
-            "button_link_2": "",
-            "button_style_secondary_2": false
-          }
-        }
-      },
-      "block_order": [
-        "heading",
-        "button"
-      ],
+    "hero_blun": {
+      "type": "hero-blun",
       "settings": {
-        "image_overlay_opacity": 40,
-        "image_height": "large",
-        "desktop_content_position": "bottom-center",
-        "show_text_box": false,
-        "image_behavior": "none",
-        "desktop_content_alignment": "center",
-        "color_scheme": "scheme-3",
-        "mobile_content_alignment": "center",
-        "stack_images_on_mobile": false,
-        "show_text_below": false
+        "eyebrow": "Modern botanical skincare",
+        "heading": "Less, but better for your skin.",
+        "heading_tag": "h1",
+        "body": "<p>Two thoughtfully made formulas for a gentler, simpler everyday ritual. A handmade soap to cleanse, a fragrance-free camel milk cream to moisturize.</p>",
+        "trust_text": "Cash on delivery nationwide · Fragrance-free cream",
+        "button_label_1": "Shop the collection",
+        "button_link_1": "shopify://collections/all",
+        "button_label_2": "Discover our approach",
+        "button_link_2": "/pages/our-story",
+        "mobile_image_ratio": "4 / 5",
+        "desktop_media_position": "right",
+        "show_card": true,
+        "card_title": "Camel Milk Cream",
+        "card_subtitle": "50 ml",
+        "card_save_label": "Save",
+        "card_price": "Rs. 4,500",
+        "card_compare_at": "Rs. 4,800",
+        "card_badge": "Save Rs. 300",
+        "show_overlay": true,
+        "padding_top": 80,
+        "padding_bottom": 80
       }
     },
     "featured_collection": {
@@ -78,7 +65,7 @@
     }
   },
   "order": [
-    "image_banner",
+    "hero_blun",
     "featured_collection"
   ]
 }
