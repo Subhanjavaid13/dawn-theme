@@ -230,6 +230,11 @@
   margin-inline: auto;
 }
 
+.hero-blun__picture {
+  display: block;
+  width: 100%;
+}
+
 .hero-blun__image,
 .hero-blun__placeholder {
   display: block;

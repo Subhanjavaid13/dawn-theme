@@ -21,6 +21,7 @@
         "button_link_1": "shopify://collections/all",
         "button_label_2": "Discover our approach",
         "button_link_2": "/pages/our-story",
+        "image_crop": "center",
         "mobile_image_ratio": "4 / 5",
         "desktop_media_position": "right",
         "show_card": true,

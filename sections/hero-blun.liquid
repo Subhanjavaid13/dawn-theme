@@ -83,6 +83,82 @@
 
   assign image_alt = section.settings.image.alt | default: section.settings.heading | strip_html | escape
 
+  # --- Responsive sources -------------------------------------------------
+  # The photo is cropped at the CDN rather than by object-fit, so the browser
+  # downloads only pixels it will actually paint. Serving an uncropped source
+  # into a 10:11 box costs real resolution: a 3:2 photo ends up upscaled 1.65x
+  # before it reaches the screen, which reads as a soft image.
+  assign hero_image = section.settings.image
+
+  if hero_image != blank
+    assign hero_candidates = '320,420,520,574,660,760,880,1000,1148,1300,1440,1600' | split: ','
+    assign crop_pos = section.settings.image_crop | default: 'center'
+
+    # Desktop — always 10 / 11, capped by what the source can actually yield.
+    assign d_max = hero_image.height | times: 10 | divided_by: 11
+    if hero_image.width < d_max
+      assign d_max = hero_image.width
+    endif
+    if d_max > 1600
+      assign d_max = 1600
+    endif
+    assign d_height = d_max | times: 11 | divided_by: 10
+
+    assign d_set = ''
+    for w in hero_candidates
+      assign wn = w | plus: 0
+      if wn < d_max
+        assign hn = wn | times: 11 | divided_by: 10
+        assign u = hero_image | image_url: width: wn, height: hn, crop: crop_pos
+        assign d_set = d_set | append: u | append: ' ' | append: wn | append: 'w||'
+      endif
+    endfor
+    assign hero_fallback = hero_image | image_url: width: d_max, height: d_height, crop: crop_pos
+    assign d_set = d_set | append: hero_fallback | append: ' ' | append: d_max | append: 'w'
+    assign desktop_srcset = d_set | split: '||' | join: ', '
+
+    # Mobile — whichever ratio the merchant picked, or uncropped for "adapt".
+    assign m_set = ''
+    if section.settings.mobile_image_ratio == 'auto'
+      assign m_max = hero_image.width
+      if m_max > 1600
+        assign m_max = 1600
+      endif
+      for w in hero_candidates
+        assign wn = w | plus: 0
+        if wn < m_max
+          assign u = hero_image | image_url: width: wn
+          assign m_set = m_set | append: u | append: ' ' | append: wn | append: 'w||'
+        endif
+      endfor
+      assign u = hero_image | image_url: width: m_max
+      assign m_set = m_set | append: u | append: ' ' | append: m_max | append: 'w'
+    else
+      assign m_parts = section.settings.mobile_image_ratio | split: '/'
+      assign m_w = m_parts[0] | strip | plus: 0
+      assign m_h = m_parts[1] | strip | plus: 0
+      assign m_max = hero_image.height | times: m_w | divided_by: m_h
+      if hero_image.width < m_max
+        assign m_max = hero_image.width
+      endif
+      if m_max > 1600
+        assign m_max = 1600
+      endif
+      for w in hero_candidates
+        assign wn = w | plus: 0
+        if wn < m_max
+          assign hn = wn | times: m_h | divided_by: m_w
+          assign u = hero_image | image_url: width: wn, height: hn, crop: crop_pos
+          assign m_set = m_set | append: u | append: ' ' | append: wn | append: 'w||'
+        endif
+      endfor
+      assign m_height = m_max | times: m_h | divided_by: m_w
+      assign u = hero_image | image_url: width: m_max, height: m_height, crop: crop_pos
+      assign m_set = m_set | append: u | append: ' ' | append: m_max | append: 'w'
+    endif
+    assign mobile_srcset = m_set | split: '||' | join: ', '
+  endif
+
   assign section_classes = 'hero-blun'
   unless section.settings.show_overlay
     assign section_classes = section_classes | append: ' hero-blun--no-overlay'
@@ -145,19 +221,28 @@
     </div>
 
     <div class="hero-blun__media">
-      {%- if section.settings.image != blank -%}
-        {{
-          section.settings.image
-          | image_url: width: 1600
-          | image_tag:
-            class: 'hero-blun__image',
-            alt: image_alt,
-            loading: 'eager',
-            fetchpriority: 'high',
-            decoding: 'async',
-            widths: '274, 375, 480, 550, 574, 700, 750, 900, 1100, 1148, 1400, 1600',
-            sizes: '(min-width: 1280px) 574px, (min-width: 990px) 48vw, (min-width: 750px) 560px, calc(100vw - 48px)'
-        }}
+      {%- if hero_image != blank -%}
+        <picture class="hero-blun__picture">
+          <source
+            media="(min-width: 990px)"
+            srcset="{{ desktop_srcset }}"
+            sizes="(min-width: 1280px) 574px, 48vw"
+          >
+          <source
+            srcset="{{ mobile_srcset }}"
+            sizes="(min-width: 750px) 560px, calc(100vw - 48px)"
+          >
+          <img
+            class="hero-blun__image"
+            src="{{ hero_fallback }}"
+            alt="{{ image_alt }}"
+            width="{{ d_max }}"
+            height="{{ d_height }}"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          >
+        </picture>
       {%- else -%}
         <div class="hero-blun__placeholder" role="img" aria-label="{{ image_alt }}">
           {{- 'lifestyle-1' | placeholder_svg_tag -}}
@@ -286,7 +371,21 @@
       "type": "image_picker",
       "id": "image",
       "label": "Image",
-      "info": "Shown at a 10:11 ratio on desktop. Use at least 1148 × 1263 px."
+      "info": "Cropped to 10:11 on desktop. Upload at least 1148 × 1263 px — a smaller or much wider source is the usual cause of a soft-looking hero."
+    },
+    {
+      "type": "select",
+      "id": "image_crop",
+      "label": "Crop from",
+      "info": "Which part of the photo to keep when it is not already 10:11.",
+      "options": [
+        { "value": "center", "label": "Centre" },
+        { "value": "top", "label": "Top" },
+        { "value": "bottom", "label": "Bottom" },
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
     },
     {
       "type": "select",
