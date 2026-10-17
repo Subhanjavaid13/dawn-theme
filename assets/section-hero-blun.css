@@ -54,6 +54,18 @@
   );
   color: var(--hero-ink);
   font-family: var(--hero-font);
+  /* This section drops into a host theme whose body copy may carry its own
+     inherited text metrics — Dawn's .text-body sets letter-spacing: 0.06rem,
+     which widened every string that did not declare its own tracking by
+     ~0.6px per character and moved the paragraph's wrap point. Reset the
+     inherited properties here; the three elements the design does give a
+     tracking value to (eyebrow, heading, buttons) declare their own below. */
+  font-style: normal;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-transform: none;
+  text-indent: 0;
+  text-align: start;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
